@@ -4,7 +4,7 @@
 sudo wget https://github.com/Zerbaib/AppImageBuilderGUI/releases/download/v2.5/AppImageBuilderGUI.deb
 
 # Install the .deb file
-sudo dpkg -i AppImageBuilder.deb
+sudo dpkg -i AppImageBuilderGUI.deb
 
 # Clean up by removing the .deb file
-sudo rm -R AppImageBuilder.deb
+sudo rm -R AppImageBuilderGUI.deb

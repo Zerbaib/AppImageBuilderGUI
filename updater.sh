@@ -7,7 +7,7 @@ sudo apt-get remove appimagebuilder -y
 sudo wget https://github.com/Zerbaib/AppImageBuilderGUI/releases/download/v2.5/AppImageBuilderGUI.deb
 
 # Install .deb file
-sudo dpkg -i AppImageBuilder.deb
+sudo dpkg -i AppImageBuilderGUI.deb
 
 # Remove .deb file
-sudo rm -R AppImageBuilder.deb
+sudo rm -R AppImageBuilderGUI.deb
