@@ -1,0 +1,100 @@
+#!/bin/bash
+
+# Function to print colored text
+print_color() {
+  local color_code=$1
+  shift
+  echo -e "\e[${color_code}m$@\e[0m"
+}
+
+# Function to display a file dialog and return the selected file
+select_file() {
+  local file_path
+  file_path=$(zenity --file-selection --title="Select AppImage File" 2>/dev/null)
+  echo "$file_path"
+}
+
+# Function to sanitize a string (replace spaces and special characters with underscores)
+sanitize_string() {
+  local string="$1"
+  string="${string// /_}"  # Replace spaces with underscores
+  string="${string//[^a-zA-Z0-9_-]/}"  # Remove special characters
+  echo "$string"
+}
+
+# Check if AppImageBuilder is up to date
+check_update() {
+  latest_version=$(curl -s https://api.github.com/repos/Zerbaib/AppImageBuilderGUI/releases/latest | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+  current_version=$(grep '^VERSION=' $0 | cut -d '=' -f2)
+  if [ "$latest_version" != "$current_version" ]; then
+    print_color "33" "WARN: AppImageBuilder is not with the latest version ($latest_version)"
+    print_color "33" "WARN: Your version is actually $current_version"
+    print_color "33" "WARN: Go here to update -> https://github.com/Zerbaib/AppImageBuilderGUI/releases/"
+    echo
+  fi
+}
+
+VERSION=v2.5
+# Update this version to the latest one when releasing a new version
+check_update
+
+# Use GUI to select the AppImage file
+appimage_file=$(select_file)
+app_name=$(basename "$appimage_file")
+desktop_file="$(xdg-user-dir DESKTOP)/$app_name.desktop"
+start_menu_file="$HOME/.local/share/applications/$app_name.desktop"
+
+if [ -z "$appimage_file" ]; then
+  echo "No AppImage file selected."
+  exit 1
+fi
+
+# Check if the AppImage file exists
+if [ ! -f "$appimage_file" ]; then
+  echo "The file $appimage_file does not exist."
+  exit 1
+fi
+
+# Update GTK (commands may vary based on the distribution)
+if command -v apt-get &>/dev/null; then
+  sudo apt-get update
+  sudo apt-get install --reinstall libgtk-3-0
+elif command -v dnf &>/dev/null; then
+  sudo dnf upgrade gtk3
+elif command -v yum &>/dev/null; then
+  sudo yum upgrade gtk3
+elif command -v pacman &>/dev/null; then
+  sudo pacman -Syu gtk3
+fi
+
+# Make the AppImage file executable
+chmod +x "$appimage_file"
+
+# Create the .desktop shortcut file on the desktop
+echo "[Desktop Entry]
+Version=2.5
+Type=Application
+Name=${app_name%.*}
+Exec=\"$appimage_file\"
+Icon=
+Terminal=false
+Categories=Utility;" > "$desktop_file"
+
+# Give execute permission to the .desktop shortcut file
+chmod +x "$desktop_file"
+
+# Create the .desktop file for the Start Menu
+echo "[Desktop Entry]
+Version=2.5
+Type=Application
+Name=${app_name%.*}
+Exec=\"$appimage_file\"
+Icon=
+Terminal=false
+Categories=Utility;" > "$start_menu_file"
+
+# Give execute permission to the .desktop file for the Start Menu
+chmod +x "$start_menu_file"
+
+# Execute the application
+"$appimage_file"

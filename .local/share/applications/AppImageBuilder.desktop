@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=2.5
+Type=Application
+Name=AppImageBuilderGUI
+Exec=AppImageBuilderGUI %U
+# Icon=chemin/vers/icone
+Terminal=false
+Categories=Utility;
